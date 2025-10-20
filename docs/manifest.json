@@ -1,7 +1,7 @@
 {
-    "name": "Quick Image Resizer",
-    "short_name": "Image Resizer",
-    "description": "Quickly resize images for forums and online use",
+    "name": "ImPress - Image Compression Tool",
+    "short_name": "ImPress",
+    "description": "Compress and resize images instantly for forums and online use",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#f8fafc",

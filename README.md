@@ -1,17 +1,14 @@
-# Image Resizer PWA
+# ImPress - Image Compression PWA
 
-A quick and easy Progressive Web App for resizing images for forums and online use. Works completely offline once installed!
+A quick and easy Progressive Web App for compressing and resizing images for forums and online use. Works completely offline once installed.
 
 ## Features
 
-- 📸 Take photos or select multiple images at once
-- 🔄 Automatic resizing maintaining aspect ratio
-- 📏 Customizable maximum dimension (default: 1024px)
-- 🎨 Adjustable JPEG quality (default: 90%)
-- 💾 Automatic download of resized images
-- 📱 Installable as a PWA on mobile and desktop
-- 🚀 Works offline after installation
-- 🎯 Drag and drop support
+- Automatic resizing maintaining aspect ratio
+- Customizable maximum dimension (default: 1024px)
+- Adjustable JPEG quality (default: 90%)
+- Installable as a PWA on mobile and desktop
+- Works offline after installation
 
 ## How to Use
 
@@ -19,7 +16,7 @@ A quick and easy Progressive Web App for resizing images for forums and online u
 
 1. Navigate to the project directory:
    ```bash
-   cd image-resizer-pwa
+   cd ImPress
    ```
 
 2. Start the local server:
@@ -51,7 +48,7 @@ A quick and easy Progressive Web App for resizing images for forums and online u
 ## File Structure
 
 ```
-image-resizer-pwa/
+ImPress/
 ├── index.html          # Main HTML file
 ├── app.js             # Core functionality
 ├── styles.css         # Styling
