@@ -213,26 +213,137 @@ function formatBytes(bytes, decimals = 2) {
 let deferredPrompt;
 const installBtn = document.getElementById('install-btn');
 
+// Debug: Log initial state
+console.log('PWA Install: Script loaded, waiting for beforeinstallprompt event...');
+
 window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('PWA Install: beforeinstallprompt event fired!');
     // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
     // Stash the event so it can be triggered later
     deferredPrompt = e;
     // Show the install button
     installBtn.classList.remove('hidden');
+    console.log('PWA Install: Install button should now be visible');
 
     installBtn.addEventListener('click', async () => {
+        console.log('PWA Install: Install button clicked');
         // Hide the install button
         installBtn.classList.add('hidden');
         // Show the install prompt
         deferredPrompt.prompt();
         // Wait for the user to respond to the prompt
         const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
+        console.log(`PWA Install: User response to the install prompt: ${outcome}`);
         // We've used the prompt, and can't use it again
         deferredPrompt = null;
     });
 });
+
+// Debug: Check if the browser even supports PWA installation
+if (!('BeforeInstallPromptEvent' in window)) {
+    console.log('PWA Install: Browser does not support beforeinstallprompt event');
+}
+
+// Debug: Manual check after page loads
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        if (!deferredPrompt) {
+            console.log('PWA Install: No install prompt received after 3 seconds. Possible reasons:');
+            console.log('  - App may already be installed');
+            console.log('  - Browser doesn\'t support PWA installation');
+            console.log('  - Site doesn\'t meet PWA criteria');
+            console.log('  - Need more user engagement (try clicking around)');
+            console.log('  - Chrome may require 2 visits 30 seconds apart');
+
+            // Show install button with instructions if not in standalone mode
+            if (!window.matchMedia('(display-mode: standalone)').matches) {
+                installBtn.classList.remove('hidden');
+                installBtn.textContent = '📲 Install App';
+                installBtn.addEventListener('click', () => {
+                    showManualInstallInstructions();
+                });
+            }
+        }
+    }, 3000);
+});
+
+// Show manual install instructions
+function showManualInstallInstructions() {
+    const ua = navigator.userAgent.toLowerCase();
+    let instructions = '';
+    let icon = '📲';
+
+    if (/iphone|ipad|ipod/.test(ua) && /safari/.test(ua)) {
+        icon = '□ ↑';  // Share icon representation
+        instructions = 'Tap the Share button at the bottom of Safari, then scroll down and select "Add to Home Screen"';
+    } else if (/android/.test(ua)) {
+        if (/firefox/.test(ua)) {
+            icon = '⚠️';
+            instructions = 'Firefox doesn\'t fully support PWA installation. For the best experience, try Chrome or Edge.';
+        } else {
+            icon = '⋮';  // Three dots menu
+            instructions = 'Tap the menu (⋮) in the top right corner, then select "Add to Home Screen" or "Install app"';
+        }
+    } else if (/firefox/.test(ua)) {
+        icon = '⚠️';
+        instructions = 'Firefox doesn\'t support PWA installation on desktop. Try Chrome, Edge, or Safari for the best experience.';
+    } else {
+        icon = '💻';
+        instructions = 'Look for the install icon in your browser\'s address bar, or use the browser menu to find "Install" or "Add to Home Screen"';
+    }
+
+    // Create a simple modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        z-index: 10000;
+        max-width: 90%;
+        width: 400px;
+        text-align: center;
+    `;
+
+    modal.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 1rem;">${icon}</div>
+        <h2 style="margin: 0 0 1rem 0; color: #1e293b;">Install ImPress</h2>
+        <p style="color: #475569; line-height: 1.6; margin: 0 0 1.5rem 0;">${instructions}</p>
+        <button onclick="this.closest('div').remove()" style="
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        ">Got it!</button>
+    `;
+
+    // Add backdrop
+    const backdrop = document.createElement('div');
+    backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+    `;
+    backdrop.onclick = () => {
+        modal.remove();
+        backdrop.remove();
+    };
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(modal);
+}
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
