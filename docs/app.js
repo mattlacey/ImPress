@@ -208,3 +208,53 @@ function formatBytes(bytes, decimals = 2) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
+
+// PWA Installation
+let deferredPrompt;
+const installBtn = document.getElementById('install-btn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+    // Show the install button
+    installBtn.classList.remove('hidden');
+
+    installBtn.addEventListener('click', async () => {
+        // Hide the install button
+        installBtn.classList.add('hidden');
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        // We've used the prompt, and can't use it again
+        deferredPrompt = null;
+    });
+});
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(registration => {
+                console.log('ServiceWorker registration successful:', registration);
+            })
+            .catch(err => {
+                console.log('ServiceWorker registration failed:', err);
+            });
+    });
+}
+
+// Hide install button if app is already installed
+window.addEventListener('appinstalled', () => {
+    console.log('PWA was installed');
+    installBtn.classList.add('hidden');
+});
+
+// Check if app is running in standalone mode
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('Running in standalone mode');
+    installBtn.classList.add('hidden');
+}
