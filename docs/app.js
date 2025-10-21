@@ -5,30 +5,14 @@ if ('serviceWorker' in navigator) {
             ? window.APP_CONFIG.basePath + '/service-worker.js'
             : './service-worker.js';
         navigator.serviceWorker.register(swPath)
-            .then(registration => console.log('ServiceWorker registered'))
+            .then(registration => console.log('ServiceWorker registration successful:', registration))
             .catch(err => console.log('ServiceWorker registration failed:', err));
     });
 }
 
-// PWA Install prompt
+// PWA Install prompt - declaring variables early
 let deferredPrompt;
 const installBtn = document.getElementById('install-btn');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.classList.remove('hidden');
-});
-
-installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response: ${outcome}`);
-        deferredPrompt = null;
-        installBtn.classList.add('hidden');
-    }
-});
 
 // Main app functionality
 const fileInput = document.getElementById('file-input');
@@ -209,10 +193,7 @@ function formatBytes(bytes, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-// PWA Installation
-let deferredPrompt;
-const installBtn = document.getElementById('install-btn');
-
+// PWA Installation - Setup (variables already declared at top)
 // Debug: Log initial state
 console.log('PWA Install: Script loaded, waiting for beforeinstallprompt event...');
 
@@ -225,20 +206,27 @@ window.addEventListener('beforeinstallprompt', (e) => {
     // Show the install button
     installBtn.classList.remove('hidden');
     console.log('PWA Install: Install button should now be visible');
-
-    installBtn.addEventListener('click', async () => {
-        console.log('PWA Install: Install button clicked');
-        // Hide the install button
-        installBtn.classList.add('hidden');
-        // Show the install prompt
-        deferredPrompt.prompt();
-        // Wait for the user to respond to the prompt
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`PWA Install: User response to the install prompt: ${outcome}`);
-        // We've used the prompt, and can't use it again
-        deferredPrompt = null;
-    });
 });
+
+// Install button click handler - set up once
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            console.log('PWA Install: Install button clicked - showing prompt');
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`PWA Install: User response to the install prompt: ${outcome}`);
+            // We've used the prompt, and can't use it again
+            deferredPrompt = null;
+            installBtn.classList.add('hidden');
+        } else {
+            // No prompt available, show manual instructions
+            showManualInstallInstructions();
+        }
+    });
+}
 
 // Debug: Check if the browser even supports PWA installation
 if (!('BeforeInstallPromptEvent' in window)) {
@@ -345,18 +333,7 @@ function showManualInstallInstructions() {
     document.body.appendChild(modal);
 }
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-            .then(registration => {
-                console.log('ServiceWorker registration successful:', registration);
-            })
-            .catch(err => {
-                console.log('ServiceWorker registration failed:', err);
-            });
-    });
-}
+// Service Worker already registered at the top of the file
 
 // Hide install button if app is already installed
 window.addEventListener('appinstalled', () => {
